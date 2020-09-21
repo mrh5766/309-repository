@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Michael Hrehocik - mrh5766@rit.edu";
 
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUpward(vector3(5.0f,3.0f,15.0f), ZERO_V3, AXIS_Y);
@@ -59,7 +59,31 @@ void Application::Display(void)
 
 
 	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
+	static int subtractedTimerValue = 0;
+	static int currStartPos = 0;
+	static int currEndPos = 1;
+	static vector3 startPosition = m_stopsList[currStartPos];
+	static vector3 endPosition = m_stopsList[currEndPos];
+	static float fanimationTime = 1.0f;
+	float fPercentage = (fTimer - subtractedTimerValue) / fanimationTime;
+	v3CurrentPos = glm::lerp(startPosition, endPosition, fPercentage);
+	if (fPercentage >= 1)
+	{
+		subtractedTimerValue += fanimationTime;
+		currStartPos++;
+		currEndPos++;
+		if (currStartPos > m_stopsList.size() - 1)
+		{
+			currStartPos = 0;
+		}
+		if (currEndPos > m_stopsList.size() - 1)
+		{
+			currEndPos = 0;
+		}
+		startPosition = m_stopsList[currStartPos];
+		endPosition = m_stopsList[currEndPos];
+
+	}
 	//-------------------
 	
 

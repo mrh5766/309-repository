@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	//Change this to your name and email
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Michael Hrehocik - mrh5766@rit.edu";
 
 	//Set the position and target of the camera
 	//(I'm at [0,0,10], looking at [0,0,0] and up is the positive Y axis)
@@ -54,21 +54,30 @@ void Application::Display(void)
 		break;
 	case 2:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPerspective(false);
+		m_pCamera->SetPosition(vector3(0, 0, 30));
 		break;
 	case 3:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(20, 0, 0));
+		m_pCamera->SetUp(vector3(0, 0, -1));
 		break;
 	case 4:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0, 0, -20));
 		break;
 	case 5:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetFOV(45.8);
+		m_pCamera->SetPosition(vector3(0, 0, -10));
 		break;
 	case 6:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0, 0, 1));
 		break;
 	case 7:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetUp(vector3(0, -1, 0));
 		break;
 	}
 

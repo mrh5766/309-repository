@@ -1,0 +1,1 @@
+My project has gimbal lock - I tried to follow the lecture and the exercise to remove it, but I'm genuinely not sure why it's still there.

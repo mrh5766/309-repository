@@ -122,8 +122,11 @@ void Simplex::MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3
 {
 	m_v3Position = a_v3Position;
 	m_v3Target = a_v3Target;
+	m_v3Forward = glm::normalize(m_v3Target - m_v3Position); //I calculate Forward, Upward, and Rightward vectors here, since they're dependent on Position, Target, and Upward anyway.
 
 	m_v3Above = a_v3Position + glm::normalize(a_v3Upward);
+	m_v3Upward = glm::normalize(m_v3Above - m_v3Position);
+	m_v3Rightward = glm::cross(m_v3Forward, m_v3Upward);
 	
 	//Calculate the Matrix
 	CalculateProjectionMatrix();
@@ -133,6 +136,7 @@ void Simplex::MyCamera::CalculateViewMatrix(void)
 {
 	//Calculate the look at most of your assignment will be reflected in this method
 	m_m4View = glm::lookAt(m_v3Position, m_v3Target, glm::normalize(m_v3Above - m_v3Position)); //position, target, upward
+	
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)
@@ -149,14 +153,35 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 			m_v2NearFar.x, m_v2NearFar.y); //near and far
 	}
 }
-
+/// <summary>
+/// Move the camera forward by an input distance
+/// </summary>
+/// <param name="a_fDistance">The distance to move</param>
 void MyCamera::MoveForward(float a_fDistance)
 {
-	//The following is just an example and does not take in account the forward vector (AKA view vector)
-	m_v3Position += vector3(0.0f, 0.0f,-a_fDistance);
-	m_v3Target += vector3(0.0f, 0.0f, -a_fDistance);
-	m_v3Above += vector3(0.0f, 0.0f, -a_fDistance);
+	m_v3Position += a_fDistance * m_v3Forward;
+	m_v3Target += a_fDistance * m_v3Forward;
+	m_v3Above += a_fDistance * m_v3Forward;
 }
 
-void MyCamera::MoveVertical(float a_fDistance){}//Needs to be defined
-void MyCamera::MoveSideways(float a_fDistance){}//Needs to be defined
+/// <summary>
+/// Move the camera vertically by the input distance
+/// </summary>
+/// <param name="a_fDistance">The distance to move</param>
+void MyCamera::MoveVertical(float a_fDistance)
+{
+	m_v3Position += a_fDistance * m_v3Upward;
+	m_v3Target += a_fDistance * m_v3Upward;
+	m_v3Above += a_fDistance * m_v3Upward;
+}
+
+/// <summary>
+/// Move the camera sideways by the input distance
+/// </summary>
+/// <param name="a_fDistance">The distance to move</param>
+void MyCamera::MoveSideways(float a_fDistance)
+{
+	m_v3Position += a_fDistance * m_v3Rightward;
+	m_v3Target += a_fDistance * m_v3Rightward;
+	m_v3Above += a_fDistance * m_v3Rightward;
+}

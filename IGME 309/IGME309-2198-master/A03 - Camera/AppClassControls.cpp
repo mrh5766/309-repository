@@ -1,4 +1,5 @@
 #include "AppClass.h"
+#include <iostream>
 using namespace Simplex;
 //Mouse
 void Application::ProcessMouseMovement(sf::Event a_event)
@@ -369,6 +370,24 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 	//Change the Yaw and the Pitch of the camera
+	vector3 v3_direction = glm::normalize(m_pCamera->GetTarget() - m_pCamera->GetPosition()); //Direction that the camera is currently facing
+	vector4 v4_direction = vector4(v3_direction.x, v3_direction.y, v3_direction.z, 1);
+	vector3 v3_up = glm::normalize(m_pCamera->GetAbove() - m_pCamera->GetPosition()); //The vector pointing directly above the camera
+	vector4 v4_up = vector4(v3_up.x, v3_up.y, v3_up.z, 1);
+
+	quaternion xRot = glm::angleAxis(fAngleX, vector3(1, 0, 0)); //The yaw quaternion of the camera
+	quaternion yRot = glm::angleAxis(fAngleY, vector3(0, 1, 0)); //The pitch quaternion of the camera
+	quaternion q_direction = quaternion();
+	q_direction = q_direction * xRot; //Concatenate the quaternions to get the overall rotation
+	q_direction = q_direction * yRot;
+	matrix4 rotMat = ToMatrix4(q_direction); 
+	
+	v4_direction = rotMat * v4_direction; //Get the rotated direction and up vectors
+	v4_up = rotMat * v4_up;
+	v3_direction = vector3(v4_direction.x, v4_direction.y, v4_direction.z);
+	v3_up = vector3(v4_up.x, v4_up.y, v4_up.z);
+	m_pCamera->SetPositionTargetAndUpward(m_pCamera->GetPosition(), v3_direction + m_pCamera->GetPosition(), v3_up);
+	m_pCamera->CalculateViewMatrix();
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
 //Keyboard
@@ -390,6 +409,14 @@ void Application::ProcessKeyboard(void)
 		m_pCamera->MoveForward(fSpeed);
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		m_pCamera->MoveForward(-fSpeed);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		m_pCamera->MoveSideways(fSpeed);
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		m_pCamera->MoveSideways(-fSpeed);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+		m_pCamera->MoveVertical(fSpeed);
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+		m_pCamera->MoveVertical(-fSpeed);
 #pragma endregion
 }
 //Joystick

@@ -273,7 +273,11 @@ void MyRigidBody::AddToRenderList(void)
 			m_pMeshMngr->AddWireCubeToRenderList(glm::translate(GetCenterGlobal()) * glm::scale(m_v3ARBBSize), C_YELLOW);
 	}
 }
-
+float MyRigidBody::Project(vector3 project, vector3 target)
+{
+	float targetMag = glm::sqrt(target.x * target.x + target.y * target.y + target.z * target.z);
+	return glm::dot(project, target) / targetMag;
+}
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
 	/*
@@ -286,6 +290,115 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Simplex that might help you [eSATResults] feel free to use it.
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
+	//Calculate the 8 corners of the cube
+	vector3 v3Corner[8]; //The corners of this rigid body
+	//Back square
+	v3Corner[0] = m_v3MinL;
+	v3Corner[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
+	v3Corner[2] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
+	v3Corner[3] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
+
+	//Front square
+	v3Corner[4] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
+	v3Corner[5] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
+	v3Corner[6] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
+	v3Corner[7] = m_v3MaxL;
+
+	//Place them in world space
+	for (uint uIndex = 0; uIndex < 8; ++uIndex)
+	{
+		v3Corner[uIndex] = vector3(m_m4ToWorld * vector4(v3Corner[uIndex], 1.0f));
+	}
+
+
+	vector3 m_v3OtherMaxL = a_pOther->GetMaxLocal();
+	vector3 m_v3OtherMinL = a_pOther->GetMinLocal();
+
+	vector3 v3OtherCorners[8]; //The corners of the other rigid body
+	//Back square
+	v3OtherCorners[0] = m_v3OtherMinL;
+	v3OtherCorners[1] = vector3(m_v3OtherMaxL.x, m_v3OtherMinL.y, m_v3OtherMinL.z);
+	v3OtherCorners[2] = vector3(m_v3OtherMinL.x, m_v3OtherMaxL.y, m_v3OtherMinL.z);
+	v3OtherCorners[3] = vector3(m_v3OtherMaxL.x, m_v3OtherMaxL.y, m_v3OtherMinL.z);
+
+	//Front square
+	v3OtherCorners[4] = vector3(m_v3OtherMinL.x, m_v3OtherMinL.y, m_v3OtherMaxL.z);
+	v3OtherCorners[5] = vector3(m_v3OtherMaxL.x, m_v3OtherMinL.y, m_v3OtherMaxL.z);
+	v3OtherCorners[6] = vector3(m_v3OtherMinL.x, m_v3OtherMaxL.y, m_v3OtherMaxL.z);
+	v3OtherCorners[7] = m_v3OtherMaxL;
+
+	//Place them in world space
+	for (uint uIndex = 0; uIndex < 8; ++uIndex)
+	{
+		v3OtherCorners[uIndex] = vector3(a_pOther->GetModelMatrix() * vector4(v3OtherCorners[uIndex], 1.0f));
+	}
+	vector3 thisX = vector3(m_m4ToWorld * vector4(1, 0, 0, 0)); //The x axis of this rigid body
+	vector3 thisY = vector3(m_m4ToWorld * vector4(0, 1, 0, 0)); //The y axis of this rigid body
+	vector3 thisZ = vector3(m_m4ToWorld * vector4(0, 0, 1, 0)); //The z axis of this rigid body
+	
+	vector3 otherX = vector3(a_pOther->GetModelMatrix() * vector4(1, 0, 0, 0)); //The x axis of the other rigid body
+	vector3 otherY = vector3(a_pOther->GetModelMatrix() * vector4(0, 1, 0, 0)); //The y axis of the other rigid body
+	vector3 otherZ = vector3(a_pOther->GetModelMatrix() * vector4(0, 0, 1, 0)); //The z axis of the other rigid body
+	vector3 testAxes[15]; //The axes to test for collision on using SAT
+	testAxes[0] = thisX;
+	testAxes[1] = thisY;
+	testAxes[2] = thisZ;
+	testAxes[3] = otherX;
+	testAxes[4] = otherY;
+	testAxes[5] = otherZ;
+	testAxes[6] = glm::cross(thisX, otherX);
+	testAxes[7] = glm::cross(thisX, otherY);
+	testAxes[8] = glm::cross(thisX, otherZ);
+	testAxes[9] = glm::cross(thisY, otherX);
+	testAxes[10] = glm::cross(thisY, otherY);
+	testAxes[11] = glm::cross(thisY, otherZ);
+	testAxes[12] = glm::cross(thisZ, otherX);
+	testAxes[13] = glm::cross(thisZ, otherY);
+	testAxes[14] = glm::cross(thisZ, otherZ);
+
+	float thisMax; //The maximum and minimum projections onto each axis
+	float thisMin;
+	float otherMax;
+	float otherMin;
+
+	for (int i = 0; i < 15; i++)
+	{
+		for (int n = 0; n < 8; n++) //Project each vertex onto the test axis - find the maximum and minimum projections onto that axis
+		{
+			float thisProjected = Project(v3Corner[n], testAxes[i]); 
+			float otherProjected = Project(v3OtherCorners[n], testAxes[i]);
+			if (n == 0)
+			{
+				thisMax = thisProjected;
+				thisMin = thisProjected;
+				otherMax = otherProjected;
+				otherMin = otherProjected;
+			}
+			else //Update minimum and maximum projections if necessary
+			{
+				if (thisProjected > thisMax)
+				{
+					thisMax = thisProjected;
+				}
+				else if (thisProjected < thisMin)
+				{
+					thisMin = thisProjected;
+				}
+				if (otherProjected > otherMax)
+				{
+					otherMax = otherProjected;
+				}
+				else if (otherProjected < otherMin)
+				{
+					otherMin = otherProjected;
+				}
+			}
+		}
+		if (thisMin > otherMax || otherMin > thisMax) //If the projections don't intersect, then there is no collision
+		{
+			return 1;
+		}
+	}
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;

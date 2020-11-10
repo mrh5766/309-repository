@@ -167,7 +167,8 @@ Simplex::MyEntityManager::~MyEntityManager(){Release();};
 // other methods
 void Simplex::MyEntityManager::Update(void)
 {
-	//Clear all collisions
+	//Collision checking moved to octree
+	/*//Clear all collisions
 	for (uint i = 0; i < m_uEntityCount; i++)
 	{
 		m_mEntityArray[i]->ClearCollisionList();
@@ -180,7 +181,7 @@ void Simplex::MyEntityManager::Update(void)
 		{
 			m_mEntityArray[i]->IsColliding(m_mEntityArray[j]);
 		}
-	}
+	}*/
 }
 void Simplex::MyEntityManager::AddEntity(String a_sFileName, String a_sUniqueID)
 {

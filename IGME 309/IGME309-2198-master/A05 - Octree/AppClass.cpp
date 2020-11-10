@@ -30,8 +30,8 @@ void Application::InitVariables(void)
 		}
 	}
 
-	m_uOctantLevels = 1;
-	//m_pRoot = new Octree(m_uOctantLevels, 5);
+	m_uOctantLevels = 2;
+	m_pRoot = new Octree(1, m_uOctantLevels, 5, m_pEntityMngr, m_pMeshMngr);
 	m_pEntityMngr->Update();
 }
 void Application::Update(void)
@@ -48,6 +48,9 @@ void Application::Update(void)
 	//Update Entity Manager
 	m_pEntityMngr->Update();
 
+	//Update the octree
+	m_pRoot->Update();
+
 	//Add objects to render list
 	m_pEntityMngr->AddEntityToRenderList(-1, true);
 }
@@ -57,7 +60,7 @@ void Application::Display(void)
 	ClearScreen();
 
 	//display octree
-	//m_pRoot->Display(); <---
+	m_pRoot->Display();
 	m_pMeshMngr->AddCubeToRenderList(IDENTITY_M4, C_RED, RENDER_WIRE);
 	
 	// draw a skybox
@@ -78,7 +81,7 @@ void Application::Display(void)
 void Application::Release(void)
 {
 	//release the octree
-
+	delete m_pRoot;
 
 	//release GUI
 	ShutdownGUI();

@@ -27,7 +27,7 @@ class Application
 	uint m_uObjects = 0; //Number of objects in the scene
 	uint m_uOctantLevels = 0; //Number of levels in the octree
 private:
-	String m_sProgrammer = "Lea Melendez - lrm4475@g.rit.edu"; //programmer
+	String m_sProgrammer = "Michael Hrehocik - mrh5766@rit.edu"; //programmer
 
 	static ImGuiObject gui; //GUI object
 	bool m_bGUI_Main = true; //show Main GUI window?

@@ -126,27 +126,17 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		*/
 		break;
 	case sf::Keyboard::Add:
-		if (m_uOctantLevels < 4)
-		{
-			m_pEntityMngr->ClearDimensionSetAll();
-			++m_uOctantLevels;
-			/*
+			if (m_uOctantLevels < 5)
+				m_uOctantLevels++;
 			SafeDelete(m_pRoot);
-			m_pRoot = new MyOctant(m_uOctantLevels, 5);
-			*/
-		}
-		break;
+			m_pRoot = new Octree(1, m_uOctantLevels, 5, m_pEntityMngr, m_pMeshMngr);
+			break;
 	case sf::Keyboard::Subtract:
-		if (m_uOctantLevels > 0)
-		{
-			m_pEntityMngr->ClearDimensionSetAll();
-			--m_uOctantLevels;
-			/*
+			if (m_uOctantLevels > 1)
+				m_uOctantLevels--;
 			SafeDelete(m_pRoot);
-			m_pRoot = new MyOctant(m_uOctantLevels, 5);
-			*/
-		}
-		break;
+			m_pRoot = new Octree(1, m_uOctantLevels, 5, m_pEntityMngr, m_pMeshMngr);
+			break;
 	case sf::Keyboard::LShift:
 	case sf::Keyboard::RShift:
 		m_bModifier = false;
@@ -437,6 +427,10 @@ void Application::ProcessKeyboard(void)
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 		m_pCameraMngr->MoveVertical(m_fMovementSpeed * fMultiplier);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp))
+		m_pRoot->ShowBox(true);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown))
+		m_pRoot->ShowBox(false);
 #pragma endregion
 }
 //Joystick
